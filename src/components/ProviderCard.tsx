@@ -1,45 +1,33 @@
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ServiceProvider } from '../types';
-import { StarRating } from './ui/StarRating';
-import { Badge } from './ui/Badge';
 import { serviceCategories } from '../services/mockData';
-
 export const ProviderCard = ({ provider }: { provider: ServiceProvider }) => {
-  const category = serviceCategories.find(c => c.value === provider.category);
-  
+  const cat = serviceCategories.find(c => c.value === provider.category);
   return (
-    <div className="card hoverable">
-      {provider.images && provider.images.length > 0 && (
-        <div className="mb-4">
-          <img 
-            src={provider.images[0]} 
-            alt={provider.name}
-            className="w-full h-40 object-cover rounded-lg"
-          />
-        </div>
-      )}
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{category?.icon}</span>
-          <div>
-            <h3 className="font-bold text-lg">{provider.name}</h3>
-            <p className="text-sm text-gray-500">{category?.label}</p>
-          </div>
-        </div>
-        <Badge variant="primary" size="sm">
-          {provider.rating.toFixed(1)}
-        </Badge>
-      </div>
-      <div className="mb-3">
-        <StarRating rating={provider.rating} size="sm" reviewCount={provider.reviewCount} />
-      </div>
-      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{provider.description}</p>
-      <div className="flex items-center justify-between text-sm text-gray-500">
-        <span>{provider.phone}</span>
-        {provider.recommendedBy.length > 0 && (
-          <span>{provider.recommendedBy.length} recomenda{provider.recommendedBy.length > 1 ? 'ções' : 'ção'}</span>
-        )}
-      </div>
-    </div>
+    <TouchableOpacity style={s.card}>
+      <View style={s.header}>
+        <Text style={s.icon}>{cat?.icon}</Text>
+        <View style={s.info}>
+          <Text style={s.name}>{provider.name}</Text>
+          <Text style={s.category}>{cat?.label}</Text>
+        </View>
+        <View style={s.rating}><Text style={s.ratingText}>{provider.rating.toFixed(1)}</Text></View>
+      </View>
+      <Text style={s.desc}>{provider.description}</Text>
+      <Text style={s.phone}>{provider.phone}</Text>
+    </TouchableOpacity>
   );
 };
+const s = StyleSheet.create({
+  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  icon: { fontSize: 24, marginRight: 8 },
+  info: { flex: 1 },
+  name: { fontSize: 16, fontWeight: '600', color: '#1f2937' },
+  category: { fontSize: 12, color: '#6b7280' },
+  rating: { backgroundColor: '#dbeafe', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  ratingText: { fontSize: 14, fontWeight: '600', color: '#1d4ed8' },
+  desc: { fontSize: 14, color: '#374151', marginBottom: 8 },
+  phone: { fontSize: 12, color: '#6b7280' },
+});

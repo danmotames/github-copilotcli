@@ -1,92 +1,43 @@
-import React, { useState } from 'react';
-import { useAppStore } from '../store/useAppStore';
+import React from 'react';
+import { View, Text, ScrollView, TextInput, StyleSheet } from 'react-native';
 import { mockProviders, mockRecommendations } from '../services/mockData';
 import { ProviderCard } from '../components/ProviderCard';
 import { RecommendationCard } from '../components/RecommendationCard';
-import { SearchBar } from '../components/SearchBar';
 import { ServiceCategoryFilter } from '../components/ServiceCategoryFilter';
-import { Header } from '../components/Header';
-import { Navigation } from '../components/Navigation';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs';
-
-export const SearchPage = () => {
-  const { searchQuery, selectedCategory, filteredRecommendations } = useAppStore();
-  const [activeTab, setActiveTab] = useState('providers');
-  
-  // Filter providers
-  const filteredProviders = mockProviders.filter((provider) => {
-    const matchesSearch = searchQuery === '' || 
-      provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      provider.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === null || provider.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-  
+import { Search } from 'lucide-react-native';
+export default function SearchScreen() {
+  const [query, setQuery] = React.useState('');
+  const [cat, setCat] = React.useState(null);
+  const [tab, setTab] = React.useState('providers');
+  const filteredProviders = mockProviders.filter(p => (query === '' || p.name.toLowerCase().includes(query.toLowerCase())) && (cat === null || p.category === cat));
+  const filteredRecs = mockRecommendations.filter(r => (query === '' || r.provider.name.toLowerCase().includes(query.toLowerCase()) || r.comment.toLowerCase().includes(query.toLowerCase())) && (cat === null || r.provider.category === cat));
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <Header title="Buscar" />
-      
-      <main className="p-4">
-        {/* Search */}
-        <div className="mb-4">
-          <SearchBar />
-        </div>
-        
-        {/* Category Filter */}
-        <div className="mb-6">
-          <ServiceCategoryFilter />
-        </div>
-        
-        {/* Results Tabs */}
-        <Tabs defaultValue="providers" className="w-full">
-          <TabsList className="flex bg-gray-100 rounded-lg p-1 mb-6">
-            <TabsTrigger 
-              value="providers" 
-              className="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 data-[state=inactive]:text-gray-500"
-            >
-              Prestadores ({filteredProviders.length})
-            </TabsTrigger>
-            <TabsTrigger 
-              value="recommendations" 
-              className="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 data-[state=inactive]:text-gray-500"
-            >
-              Recomendações ({filteredRecommendations.length})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="providers" className="space-y-4">
-            {filteredProviders.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredProviders.map((provider) => (
-                  <ProviderCard key={provider.id} provider={provider} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                <p>Nenhum prestador encontrado</p>
-                <p className="text-sm mt-1">Tente ajustar seus filtros</p>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="recommendations" className="space-y-4">
-            {filteredRecommendations.length > 0 ? (
-              <div className="space-y-4">
-                {filteredRecommendations.map((recommendation) => (
-                  <RecommendationCard key={recommendation.id} recommendation={recommendation} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                <p>Nenhuma recomendação encontrada</p>
-                <p className="text-sm mt-1">Tente ajustar seus filtros</p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </main>
-      
-      <Navigation />
-    </div>
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
+      <Text style={s.title}>Buscar</Text>
+      <View style={s.search}>
+        <Search size={20} color="#9ca3af" style={s.searchIcon} />
+        <TextInput placeholder="Buscar..." value={query} onChangeText={setQuery} style={s.searchInput} />
+      </View>
+      <ServiceCategoryFilter selected={cat} onSelect={setCat} />
+      <View style={s.tabs}>
+        <Text style={[s.tab, tab === 'providers' && s.activeTab]} onPress={() => setTab('providers')}>Prestadores ({filteredProviders.length})</Text>
+        <Text style={[s.tab, tab === 'recommendations' && s.activeTab]} onPress={() => setTab('recommendations')}>Recomendações ({filteredRecs.length})</Text>
+      </View>
+      {tab === 'providers' && <View style={s.grid}>{filteredProviders.map(p => <View key={p.id} style={{width: '100%', marginBottom: 12}}><ProviderCard provider={p} /></View>)}</View>}
+      {tab === 'recommendations' && <View style={s.list}>{filteredRecs.map(r => <RecommendationCard key={r.id} rec={r} />)}</View>}
+    </ScrollView>
   );
-};
+}
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f9fafb' },
+  content: { padding: 16, paddingBottom: 100 },
+  title: { fontSize: 24, fontWeight: '700', color: '#1f2937', marginBottom: 16 },
+  search: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  searchIcon: { marginRight: 12 },
+  searchInput: { flex: 1, fontSize: 16 },
+  tabs: { flexDirection: 'row', marginBottom: 16, gap: 8 },
+  tab: { flex: 1, textAlign: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 8, fontSize: 14, fontWeight: '500', color: '#6b7280', backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  activeTab: { color: '#fff', backgroundColor: '#3b82f6' },
+  grid: { gap: 12 },
+  list: { gap: 12 },
+});

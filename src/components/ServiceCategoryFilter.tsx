@@ -1,14 +1,24 @@
 import React from 'react';
+import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { serviceCategories } from '../services/mockData';
-import { useAppStore } from '../store/useAppStore';
-
-export const ServiceCategoryFilter = () => {
-  const { selectedCategory, setSelectedCategory, resetFilters } = useAppStore();
-  
+export const ServiceCategoryFilter = ({ selected, onSelect }: { selected: string | null; onSelect: (c: string | null) => void }) => {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
-      <button onClick={() => resetFilters()} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium ${selectedCategory === null ? 'bg-primary-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200'}`}>Todos</button>
-      {serviceCategories.map((category) => (<button key={category.value} onClick={() => setSelectedCategory(category.value)} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium ${selectedCategory === category.value ? 'bg-primary-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200'}`}><span className="mr-1">{category.icon}</span>{category.label}</button>))}
-    </div>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.container}>
+      <TouchableOpacity onPress={() => onSelect(null)} style={[s.btn, selected === null && s.active]}>
+        <Text style={[s.txt, selected === null && s.activeTxt]}>Todos</Text>
+      </TouchableOpacity>
+      {serviceCategories.map(c => (
+        <TouchableOpacity key={c.value} onPress={() => onSelect(c.value)} style={[s.btn, selected === c.value && s.active]}>
+          <Text style={[s.txt, selected === c.value && s.activeTxt]}>{c.icon} {c.label}</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
   );
 };
+const s = StyleSheet.create({
+  container: { paddingHorizontal: 16, paddingVertical: 8 },
+  btn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', marginRight: 8 },
+  active: { backgroundColor: '#3b82f6', borderWidth: 0 },
+  txt: { fontSize: 14, fontWeight: '600', color: '#374151' },
+  activeTxt: { color: '#fff' },
+});
