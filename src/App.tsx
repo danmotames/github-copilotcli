@@ -8,6 +8,7 @@ import SearchScreen from './pages/SearchPage';
 import RecommendScreen from './pages/RecommendPage';
 import ProvidersScreen from './pages/ProvidersPage';
 import ProfileScreen from './pages/ProfilePage';
+import { colors } from './theme';
 
 const Tab = createBottomTabNavigator();
 
@@ -15,7 +16,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
-      <Tab.Navigator screenOptions={{ tabBarActiveTintColor: '#3b82f6', tabBarInactiveTintColor: '#9ca3af', headerShown: false }}>
+      <Tab.Navigator screenOptions={{ tabBarActiveTintColor: colors.primary, tabBarInactiveTintColor: colors.textPlaceholder, headerShown: false }}>
         <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Início', tabBarIcon: ({ color, size }) => <Home color={color} size={size} /> }} />
         <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: 'Buscar', tabBarIcon: ({ color, size }) => <Search color={color} size={size} /> }} />
         <Tab.Screen name="Recommend" component={RecommendScreen} options={{ tabBarLabel: 'Recomendar', tabBarIcon: ({ color, size }) => <Plus color={color} size={size} /> }} />
