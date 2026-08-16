@@ -6,6 +6,9 @@ import { ProviderCard } from '../components/ProviderCard';
 import { RecommendationCard } from '../components/RecommendationCard';
 import { ServiceCategoryFilter } from '../components/ServiceCategoryFilter';
 import { Search } from 'lucide-react-native';
+import { colors, spacing, typography } from '../theme';
+import { commonStyles } from '../theme/commonStyles';
+
 export default function HomeScreen() {
   const { setRecommendations, setProviders, recommendations, providers } = useAppStore();
   const [cat, setCat] = React.useState(null);
@@ -13,29 +16,24 @@ export default function HomeScreen() {
   const filteredRecs = recommendations.filter(r => cat === null || r.provider.category === cat);
   const featured = [...providers].sort((a, b) => b.rating - a.rating).slice(0, 3);
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
-      <Text style={s.title}>CondoServices</Text>
-      <View style={s.search}>
-        <Search size={20} color="#9ca3af" style={s.searchIcon} />
-        <TextInput placeholder="Buscar..." style={s.searchInput} />
+    <ScrollView style={commonStyles.screen} contentContainerStyle={commonStyles.screenContent}>
+      <Text style={commonStyles.title}>CondoServices</Text>
+      <View style={commonStyles.searchBar}>
+        <Search size={20} color={colors.textPlaceholder} style={commonStyles.searchIcon} />
+        <TextInput placeholder="Buscar..." style={commonStyles.searchInput} />
       </View>
       <ServiceCategoryFilter selected={cat} onSelect={setCat} />
-      <Text style={s.sectionTitle}>🔥 Melhores Avaliados</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row}>
-        {featured.map(p => <View key={p.id} style={{ width: 280, marginRight: 12 }}><ProviderCard provider={p} /></View>)}</ScrollView>
-      <Text style={s.sectionTitle}>✨ Recomendações Recentes</Text>
-      <View style={s.list}>{filteredRecs.map(r => <RecommendationCard key={r.id} rec={r} />)}</View>
+      <Text style={[commonStyles.sectionTitle, s.topSpacing]}>🔥 Melhores Avaliados</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={commonStyles.row}>
+        {featured.map(p => <View key={p.id} style={s.featuredItem}><ProviderCard provider={p} /></View>)}
+      </ScrollView>
+      <Text style={[commonStyles.sectionTitle, s.topSpacing]}>✨ Recomendações Recentes</Text>
+      <View style={commonStyles.list}>{filteredRecs.map(r => <RecommendationCard key={r.id} rec={r} />)}</View>
     </ScrollView>
   );
 }
+
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { padding: 16, paddingBottom: 100 },
-  title: { fontSize: 24, fontWeight: '700', color: '#1f2937', marginBottom: 16 },
-  search: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
-  searchIcon: { marginRight: 12 },
-  searchInput: { flex: 1, fontSize: 16 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#1f2937', marginBottom: 12 },
-  row: { paddingRight: 16 },
-  list: { gap: 12 },
+  topSpacing: { marginTop: spacing.lg },
+  featuredItem: { width: 280, marginRight: spacing.md },
 });
