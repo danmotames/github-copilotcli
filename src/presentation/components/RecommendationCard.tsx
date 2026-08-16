@@ -1,14 +1,34 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Recommendation } from '../types';
+import { Recommendation } from '../../core/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-export const RecommendationCard = ({ rec }: { rec: Recommendation }) => {
-  const timeAgo = formatDistanceToNow(rec.createdAt, { locale: ptBR, addSuffix: true });
+import { getInitials } from '../utils/stringUtils';
+
+interface Props {
+  rec: Recommendation;
+  onPress?: () => void;
+}
+
+export const RecommendationCard = React.memo(function RecommendationCard({ rec, onPress }: Props) {
+  const timeAgo = useMemo(
+    () => formatDistanceToNow(rec.createdAt, { locale: ptBR, addSuffix: true }),
+    [rec.createdAt],
+  );
+
+  const initials = useMemo(() => getInitials(rec.user.name), [rec.user.name]);
+
   return (
-    <TouchableOpacity style={s.card}>
+    <TouchableOpacity
+      style={s.card}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Recomendação de ${rec.user.name} para ${rec.provider.name}, avaliação ${rec.rating.toFixed(1)}`}
+    >
       <View style={s.header}>
-        <View style={s.avatar}><Text style={s.avatarText}>{rec.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}</Text></View>
+        <View style={s.avatar}>
+          <Text style={s.avatarText}>{initials}</Text>
+        </View>
         <View style={s.info}>
           <View style={s.userRow}>
             <Text style={s.name}>{rec.user.name}</Text>
@@ -21,7 +41,8 @@ export const RecommendationCard = ({ rec }: { rec: Recommendation }) => {
       </View>
     </TouchableOpacity>
   );
-};
+});
+
 const s = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   header: { flexDirection: 'row', gap: 12 },
