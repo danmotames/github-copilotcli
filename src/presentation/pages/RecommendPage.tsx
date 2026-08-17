@@ -120,7 +120,7 @@ export default function RecommendScreen() {
           <Text style={s.label}>Nome do Prestador</Text>
           <TextInput
             placeholder="Ex: Limpeza Total"
-            style={[s.input, errors.providerName && s.inputError]}
+            style={[s.input, errors.providerName ? s.inputError : null]}
             value={form.providerName}
             onChangeText={(v) => setField('providerName', v)}
           />
@@ -129,7 +129,7 @@ export default function RecommendScreen() {
           <Text style={s.label}>Categoria</Text>
           <TextInput
             placeholder="Ex: limpeza"
-            style={[s.input, errors.category && s.inputError]}
+            style={[s.input, errors.category ? s.inputError : null]}
             value={form.category}
             onChangeText={(v) => setField('category', v)}
           />
@@ -138,7 +138,7 @@ export default function RecommendScreen() {
           <Text style={s.label}>Telefone</Text>
           <TextInput
             placeholder="Ex: (11) 99999-9999"
-            style={[s.input, errors.phone && s.inputError]}
+            style={[s.input, errors.phone ? s.inputError : null]}
             value={form.phone}
             onChangeText={(v) => setField('phone', v)}
             keyboardType="phone-pad"
@@ -148,7 +148,7 @@ export default function RecommendScreen() {
           <Text style={s.label}>Descrição</Text>
           <TextInput
             placeholder="Descreva os serviços"
-            style={[s.input, s.textarea, errors.description && s.inputError]}
+            style={[s.input, s.textarea, errors.description ? s.inputError : null]}
             value={form.description}
             onChangeText={(v) => setField('description', v)}
             multiline
@@ -162,7 +162,7 @@ export default function RecommendScreen() {
           <Text style={s.label}>Comentário</Text>
           <TextInput
             placeholder="Conte sua experiência..."
-            style={[s.input, s.textarea, errors.comment && s.inputError]}
+            style={[s.input, s.textarea, errors.comment ? s.inputError : null]}
             value={form.comment}
             onChangeText={(v) => setField('comment', v)}
             multiline
