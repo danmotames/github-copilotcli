@@ -1,30 +1,21 @@
-import React, { memo, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Recommendation } from '../../core/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Recommendation } from '../../core/types';
+import { getInitials } from '../utils/stringUtils';
 
 interface Props {
   rec: Recommendation;
   onPress?: () => void;
 }
 
-function getInitials(name: string): string {
-  if (!name || name.trim().length === 0) return '?';
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-export const RecommendationCard = memo(({ rec, onPress }: Props) => {
+export const RecommendationCard = React.memo(function RecommendationCard({ rec, onPress }: Props) {
   const timeAgo = useMemo(
     () => formatDistanceToNow(rec.createdAt, { locale: ptBR, addSuffix: true }),
     [rec.createdAt],
   );
+
   const initials = useMemo(() => getInitials(rec.user.name), [rec.user.name]);
 
   return (
@@ -51,8 +42,6 @@ export const RecommendationCard = memo(({ rec, onPress }: Props) => {
     </TouchableOpacity>
   );
 });
-
-RecommendationCard.displayName = 'RecommendationCard';
 
 const s = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React from 'react';
 import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { ServiceCategory } from '../../core/types';
 import { ServiceCategoryConfig } from '../../data/repositories/providerRepository';
@@ -9,33 +9,31 @@ interface Props {
   categories: ServiceCategoryConfig[];
 }
 
-export const ServiceCategoryFilter = memo(({ selected, onSelect, categories }: Props) => (
-  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.container}>
-    <TouchableOpacity
-      onPress={() => onSelect(null)}
-      style={[s.btn, selected === null && s.active]}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected === null }}
-      accessibilityLabel="Todos"
-    >
-      <Text style={[s.txt, selected === null && s.activeTxt]}>Todos</Text>
-    </TouchableOpacity>
-    {categories.map((c) => (
+export const ServiceCategoryFilter = React.memo(function ServiceCategoryFilter({ selected, onSelect, categories }: Props) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.container}>
       <TouchableOpacity
-        key={c.value}
-        onPress={() => onSelect(c.value)}
-        style={[s.btn, selected === c.value && s.active]}
+        onPress={() => onSelect(null)}
+        style={[s.btn, selected === null && s.active]}
         accessibilityRole="radio"
-        accessibilityState={{ checked: selected === c.value }}
-        accessibilityLabel={c.label}
+        accessibilityState={{ checked: selected === null }}
       >
-        <Text style={[s.txt, selected === c.value && s.activeTxt]}>{c.icon} {c.label}</Text>
+        <Text style={[s.txt, selected === null && s.activeTxt]}>Todos</Text>
       </TouchableOpacity>
-    ))}
-  </ScrollView>
-));
-
-ServiceCategoryFilter.displayName = 'ServiceCategoryFilter';
+      {categories.map((c) => (
+        <TouchableOpacity
+          key={c.value}
+          onPress={() => onSelect(c.value)}
+          style={[s.btn, selected === c.value && s.active]}
+          accessibilityRole="radio"
+          accessibilityState={{ checked: selected === c.value }}
+        >
+          <Text style={[s.txt, selected === c.value && s.activeTxt]}>{c.icon} {c.label}</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  );
+});
 
 const s = StyleSheet.create({
   container: { paddingHorizontal: 16, paddingVertical: 8 },

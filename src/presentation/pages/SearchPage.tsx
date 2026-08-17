@@ -1,44 +1,44 @@
-import React, { useState, useMemo, memo, useCallback } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Search } from 'lucide-react-native';
-import { ServiceCategory, ServiceProvider, Recommendation } from '../../core/types';
-import { ServiceCategoryConfig } from '../../data/repositories/providerRepository';
-import { sharedRepository } from '../sharedRepository';
+import { createProviderRepository, ServiceCategoryConfig } from '../../data/repositories/providerRepository';
+import { useAppStore } from '../store/useAppStore';
+import { useHomeViewModel } from '../hooks/useHomeViewModel';
 import { ServiceCategoryFilter } from '../components/ServiceCategoryFilter';
 import { ProviderCard } from '../components/ProviderCard';
 import { RecommendationCard } from '../components/RecommendationCard';
-import { useAppStore } from '../store/useAppStore';
-import { useHomeViewModel } from '../hooks/useHomeViewModel';
+import { ServiceCategory, ServiceProvider, Recommendation } from '../../core/types';
 
-type Tab = 'providers' | 'recommendations';
+const repository = createProviderRepository();
 
-interface TabButtonProps {
+const TabButton = React.memo(function TabButton({
+  label,
+  active,
+  onPress,
+}: {
   label: string;
   active: boolean;
   onPress: () => void;
-}
-const TabButton = memo(({ label, active, onPress }: TabButtonProps) => (
-  <TouchableOpacity
-    style={[s.tab, active && s.activeTab]}
-    onPress={onPress}
-    accessibilityRole="tab"
-    accessibilityState={{ selected: active }}
-  >
-    <Text style={[s.tabTxt, active && s.activeTabTxt]}>{label}</Text>
-  </TouchableOpacity>
-));
-TabButton.displayName = 'TabButton';
+}) {
+  return (
+    <TouchableOpacity
+      style={[s.tab, active && s.activeTab]}
+      onPress={onPress}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+    >
+      <Text style={[s.tabTxt, active && s.activeTabTxt]}>{label}</Text>
+    </TouchableOpacity>
+  );
+});
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
-  const [cat, setCat] = useState<ServiceCategory | null>(null);
-  const [tab, setTab] = useState<Tab>('providers');
+  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null);
+  const [activeTab, setActiveTab] = useState<'providers' | 'recommendations'>('providers');
 
-  // Reuse data loaded by HomeViewModel (or load it here via repository)
-  const { providers, recommendations, categories } = useAppStore();
-
-  // Also trigger a load if store is empty
-  useHomeViewModel(sharedRepository);
+  const { categories } = useHomeViewModel(repository);
+  const { providers, recommendations } = useAppStore();
 
   const categoryMap = useMemo(() => {
     const map = new Map<ServiceCategory, ServiceCategoryConfig>();
@@ -46,38 +46,38 @@ export default function SearchScreen() {
     return map;
   }, [categories]);
 
-  const filteredProviders = useMemo(
+  const filteredProviders = useMemo<ServiceProvider[]>(
     () =>
       providers.filter(
         (p) =>
           (query === '' || p.name.toLowerCase().includes(query.toLowerCase())) &&
-          (cat === null || p.category === cat),
+          (selectedCategory === null || p.category === selectedCategory),
       ),
-    [providers, query, cat],
+    [providers, query, selectedCategory],
   );
 
-  const filteredRecs = useMemo(
+  const filteredRecommendations = useMemo<Recommendation[]>(
     () =>
       recommendations.filter(
         (r) =>
           (query === '' ||
             r.provider.name.toLowerCase().includes(query.toLowerCase()) ||
             r.comment.toLowerCase().includes(query.toLowerCase())) &&
-          (cat === null || r.provider.category === cat),
+          (selectedCategory === null || r.provider.category === selectedCategory),
       ),
-    [recommendations, query, cat],
+    [recommendations, query, selectedCategory],
   );
 
   const renderProvider = useCallback(
     ({ item }: { item: ServiceProvider }) => (
-      <View style={s.itemWrap}>
+      <View style={s.itemWrapper}>
         <ProviderCard provider={item} categoryConfig={categoryMap.get(item.category)} />
       </View>
     ),
     [categoryMap],
   );
 
-  const renderRec = useCallback(
+  const renderRecommendation = useCallback(
     ({ item }: { item: Recommendation }) => <RecommendationCard rec={item} />,
     [],
   );
@@ -94,32 +94,36 @@ export default function SearchScreen() {
           style={s.searchInput}
         />
       </View>
-      <ServiceCategoryFilter selected={cat} onSelect={setCat} categories={categories} />
+      <ServiceCategoryFilter
+        selected={selectedCategory}
+        onSelect={setSelectedCategory}
+        categories={categories}
+      />
       <View style={s.tabs}>
         <TabButton
           label={`Prestadores (${filteredProviders.length})`}
-          active={tab === 'providers'}
-          onPress={() => setTab('providers')}
+          active={activeTab === 'providers'}
+          onPress={() => setActiveTab('providers')}
         />
         <TabButton
-          label={`Recomendações (${filteredRecs.length})`}
-          active={tab === 'recommendations'}
-          onPress={() => setTab('recommendations')}
+          label={`Recomendações (${filteredRecommendations.length})`}
+          active={activeTab === 'recommendations'}
+          onPress={() => setActiveTab('recommendations')}
         />
       </View>
-      {tab === 'providers' ? (
+      {activeTab === 'providers' ? (
         <FlatList
           data={filteredProviders}
-          keyExtractor={(p) => p.id}
+          keyExtractor={(item) => item.id}
           renderItem={renderProvider}
           contentContainerStyle={s.list}
           ListEmptyComponent={<Text style={s.empty}>Nenhum prestador encontrado.</Text>}
         />
       ) : (
         <FlatList
-          data={filteredRecs}
-          keyExtractor={(r) => r.id}
-          renderItem={renderRec}
+          data={filteredRecommendations}
+          keyExtractor={(item) => item.id}
+          renderItem={renderRecommendation}
           contentContainerStyle={s.list}
           ListEmptyComponent={<Text style={s.empty}>Nenhuma recomendação encontrada.</Text>}
         />
@@ -140,6 +144,6 @@ const s = StyleSheet.create({
   tabTxt: { fontSize: 14, fontWeight: '500', color: '#6b7280' },
   activeTabTxt: { color: '#fff' },
   list: { paddingBottom: 100 },
-  itemWrap: { marginBottom: 12 },
+  itemWrapper: { width: '100%', marginBottom: 12 },
   empty: { textAlign: 'center', color: '#6b7280', marginTop: 16 },
 });

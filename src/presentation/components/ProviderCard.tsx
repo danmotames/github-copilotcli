@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ServiceProvider } from '../../core/types';
 import { ServiceCategoryConfig } from '../../data/repositories/providerRepository';
@@ -9,7 +9,7 @@ interface Props {
   onPress?: () => void;
 }
 
-export const ProviderCard = memo(({ provider, categoryConfig, onPress }: Props) => {
+export const ProviderCard = React.memo(function ProviderCard({ provider, categoryConfig, onPress }: Props) {
   const icon = categoryConfig?.icon ?? '🛠️';
   const label = categoryConfig?.label ?? provider.category;
 
@@ -35,8 +35,6 @@ export const ProviderCard = memo(({ provider, categoryConfig, onPress }: Props) 
     </TouchableOpacity>
   );
 });
-
-ProviderCard.displayName = 'ProviderCard';
 
 const s = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },

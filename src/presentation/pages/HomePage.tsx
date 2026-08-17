@@ -1,48 +1,54 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
   TextInput,
+  StyleSheet,
   FlatList,
   ActivityIndicator,
-  StyleSheet,
 } from 'react-native';
 import { Search } from 'lucide-react-native';
-import { ServiceCategory, ServiceProvider, Recommendation } from '../../core/types';
-import { ServiceCategoryConfig } from '../../data/repositories/providerRepository';
-import { sharedRepository } from '../sharedRepository';
 import { useHomeViewModel } from '../hooks/useHomeViewModel';
+import { createProviderRepository } from '../../data/repositories/providerRepository';
+import { ServiceCategoryFilter } from '../components/ServiceCategoryFilter';
 import { ProviderCard } from '../components/ProviderCard';
 import { RecommendationCard } from '../components/RecommendationCard';
-import { ServiceCategoryFilter } from '../components/ServiceCategoryFilter';
+import { ServiceCategory, ServiceProvider, Recommendation } from '../../core/types';
+import { ServiceCategoryConfig } from '../../data/repositories/providerRepository';
 
-// Singleton repository — created once outside the component
+// singleton repository — criado fora do componente para não recriar a cada render
+const repository = createProviderRepository();
 
 export default function HomeScreen() {
-  const [selectedCat, setSelectedCat] = useState<ServiceCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null);
   const [query, setQuery] = useState('');
 
   const {
     isLoading,
     error,
     categories,
-    categoryMap,
     featuredProviders,
     getRecommendationsByCategory,
-  } = useHomeViewModel(sharedRepository);
+  } = useHomeViewModel(repository);
 
-  const filteredRecs = useMemo(() => {
-    const byCat = getRecommendationsByCategory(selectedCat);
-    if (!query) return byCat;
-    const q = query.toLowerCase();
-    return byCat.filter(
-      (r) =>
-        r.provider.name.toLowerCase().includes(q) ||
-        r.comment.toLowerCase().includes(q),
-    );
-  }, [getRecommendationsByCategory, selectedCat, query]);
+  const filteredRecommendations = useMemo(
+    () =>
+      getRecommendationsByCategory(selectedCategory).filter(
+        (r) =>
+          query === '' ||
+          r.provider.name.toLowerCase().includes(query.toLowerCase()) ||
+          r.comment.toLowerCase().includes(query.toLowerCase()),
+      ),
+    [getRecommendationsByCategory, selectedCategory, query],
+  );
 
-  const renderFeatured = useCallback(
+  const categoryMap = useMemo(() => {
+    const map = new Map<ServiceCategory, ServiceCategoryConfig>();
+    categories.forEach((c) => map.set(c.value, c));
+    return map;
+  }, [categories]);
+
+  const renderFeaturedProvider = useCallback(
     ({ item }: { item: ServiceProvider }) => (
       <View style={s.featuredItem}>
         <ProviderCard provider={item} categoryConfig={categoryMap.get(item.category)} />
@@ -51,7 +57,7 @@ export default function HomeScreen() {
     [categoryMap],
   );
 
-  const renderRec = useCallback(
+  const renderRecommendation = useCallback(
     ({ item }: { item: Recommendation }) => <RecommendationCard rec={item} />,
     [],
   );
@@ -65,16 +71,16 @@ export default function HomeScreen() {
           <TextInput placeholder="Buscar..." value={query} onChangeText={setQuery} style={s.searchInput} />
         </View>
         <ServiceCategoryFilter
-          selected={selectedCat}
-          onSelect={setSelectedCat}
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
           categories={categories}
         />
         <Text style={s.sectionTitle}>🔥 Melhores Avaliados</Text>
         <FlatList
           horizontal
           data={featuredProviders}
-          keyExtractor={(p) => p.id}
-          renderItem={renderFeatured}
+          keyExtractor={(item) => item.id}
+          renderItem={renderFeaturedProvider}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={s.row}
         />
@@ -82,7 +88,7 @@ export default function HomeScreen() {
       </View>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedCat, categories, featuredProviders, categoryMap],
+    [selectedCategory, query, categories, featuredProviders, renderFeaturedProvider],
   );
 
   if (isLoading) {
@@ -96,7 +102,7 @@ export default function HomeScreen() {
   if (error) {
     return (
       <View style={s.center}>
-        <Text style={s.errorText}>{error}</Text>
+        <Text style={s.errorText}>⚠️ {error}</Text>
       </View>
     );
   }
@@ -105,9 +111,9 @@ export default function HomeScreen() {
     <FlatList
       style={s.container}
       contentContainerStyle={s.content}
-      data={filteredRecs}
-      keyExtractor={(r) => r.id}
-      renderItem={renderRec}
+      data={filteredRecommendations}
+      keyExtractor={(item) => item.id}
+      renderItem={renderRecommendation}
       ListHeaderComponent={ListHeader}
       ListEmptyComponent={<Text style={s.empty}>Nenhuma recomendação encontrada.</Text>}
     />
@@ -117,7 +123,8 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
   content: { padding: 16, paddingBottom: 100 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' },
+  errorText: { fontSize: 16, color: '#ef4444', textAlign: 'center', paddingHorizontal: 24 },
   title: { fontSize: 24, fontWeight: '700', color: '#1f2937', marginBottom: 16 },
   search: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   searchIcon: { marginRight: 12 },
@@ -126,5 +133,4 @@ const s = StyleSheet.create({
   row: { paddingRight: 16 },
   featuredItem: { width: 280, marginRight: 12 },
   empty: { textAlign: 'center', color: '#6b7280', marginTop: 16 },
-  errorText: { fontSize: 16, color: '#ef4444', textAlign: 'center' },
 });

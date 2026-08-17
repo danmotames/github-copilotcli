@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { ServiceProvider, Recommendation } from '../../core/types';
 import { ServiceCategoryConfig } from '../../data/repositories/providerRepository';
 
-interface AppStore {
+interface AppState {
   providers: ServiceProvider[];
   recommendations: Recommendation[];
   categories: ServiceCategoryConfig[];
@@ -24,7 +24,7 @@ const initialState = {
   error: null,
 };
 
-export const useAppStore = create<AppStore>((set) => ({
+export const useAppStore = create<AppState>((set) => ({
   ...initialState,
   setProviders: (providers) => set({ providers }),
   setRecommendations: (recommendations) => set({ recommendations }),
