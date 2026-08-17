@@ -3,11 +3,11 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Search, Plus, Heart, User } from 'lucide-react-native';
-import HomeScreen from './pages/HomePage';
-import SearchScreen from './pages/SearchPage';
-import RecommendScreen from './pages/RecommendPage';
-import ProvidersScreen from './pages/ProvidersPage';
-import ProfileScreen from './pages/ProfilePage';
+import HomeScreen from './presentation/pages/HomePage';
+import SearchScreen from './presentation/pages/SearchPage';
+import RecommendScreen from './presentation/pages/RecommendPage';
+import ProvidersScreen from './presentation/pages/ProvidersPage';
+import ProfileScreen from './presentation/pages/ProfilePage';
 
 const Tab = createBottomTabNavigator();
 
